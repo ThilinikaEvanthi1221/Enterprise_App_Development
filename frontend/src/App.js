@@ -84,7 +84,14 @@ function App() {
           }
         />
 
-        <Route path="/vehicle-register" element={<VehicleRegister />} />
+        <Route
+          path="/vehicle-register"
+          element={
+            <PrivateRoute allowedRoles={["customer"]}>
+              <VehicleRegister />
+            </PrivateRoute>
+          }
+        />
 
         {/* Employee Routes */}
         <Route
@@ -207,7 +214,14 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route path="/profile" element={<Profile />} />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

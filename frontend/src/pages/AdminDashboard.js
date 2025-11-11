@@ -259,13 +259,6 @@ const Dashboard = () => {
             trend="up"
             iconType="⏱️"
           />
-          <MetricCard
-            title="ChatBot Queries"
-            value={"-"}
-            change="+15.3%"
-            trend="up"
-            iconType="💬"
-          />
         </div>
 
         {/* Charts Row */}
