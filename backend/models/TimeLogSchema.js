@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const timeLogSchema = new mongoose.Schema(
   {
+    employee: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    employeeid: { type: String, required: true },
     projectType: {
       type: String,
       enum: ["service", "project"],
@@ -21,6 +23,7 @@ const timeLogSchema = new mongoose.Schema(
       min: 0,
       max: 24,
     },
+    hours: { type: Number, min: 0 }, // Legacy field for backward compatibility
     description: {
       type: String,
       default: "",
@@ -34,4 +37,4 @@ const timeLogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("TimeLog", timeLogSchema);
+module.exports = mongoose.models.TimeLog || mongoose.model("TimeLog", timeLogSchema);

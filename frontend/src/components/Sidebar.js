@@ -12,7 +12,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: "Appointments", icon: Calendar, path: "/appointments" },
     { name: "Services", icon: Wrench, path: "/services" },
     { name: "Vehicles", icon: Car, path: "/vehicles" },
-    { name: "Time Logs", icon: Clock, path: "/time-logs" },
     { name: "Time Log Reports", icon: FileText, path: "/time-log-reports" },
     { name: "ChatBot Queries", icon: MessageSquare, path: "/chatbot" },
     { name: "My Profile", icon: User, path: "/profile" },

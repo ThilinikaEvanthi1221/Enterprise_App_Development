@@ -22,7 +22,6 @@ import Users from "./pages/Users";
 import Appointments from "./pages/Appointments";
 import Services from "./pages/Services";
 import Vehicles from "./pages/Vehicles";
-import TimeLogs from "./pages/TimeLogs";
 import ChatBot from "./pages/ChatBot";
 import TimeLogReport from "./pages/TimeLogReport";
 import Profile from "./pages/Profile";
@@ -171,14 +170,6 @@ function App() {
           element={
             <PrivateRoute>
               <Vehicles />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/time-logs"
-          element={
-            <PrivateRoute>
-              <TimeLogs />
             </PrivateRoute>
           }
         />
