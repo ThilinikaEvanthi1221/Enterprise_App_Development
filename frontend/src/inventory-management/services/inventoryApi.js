@@ -111,6 +111,16 @@ class InventoryApiService {
     return response.data;
   }
 
+  // Alias for getInventoryValueReport
+  async getInventoryValue() {
+    return this.getInventoryValueReport();
+  }
+
+  // Transaction history (alias for getTransactionReport)
+  async getTransactionHistory(params = {}) {
+    return this.getTransactionReport(params);
+  }
+
   // Settings methods
   async updateConfig(section, config) {
     const response = await api.put(`/inventory/config/${section}`, config);

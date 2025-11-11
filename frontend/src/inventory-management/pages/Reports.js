@@ -54,9 +54,9 @@ const Reports = () => {
     } catch (err) {
       console.error('Report fetch error:', err);
       
-      // If backend routes don't exist yet, use mock data
+      // Check if it's a 404 (route not found) or other error
       if (err.response?.status === 404 || err.message?.includes('404')) {
-        console.log('Using mock data - backend routes not yet implemented');
+        console.log('404 error - Route may not exist or data not found');
         const mockData = {
           totalParts: 0,
           lowStockParts: 0,
@@ -67,9 +67,15 @@ const Reports = () => {
           categories: []
         };
         setReportData(mockData);
-        setError('Backend inventory routes not yet implemented. Showing mock data.');
+        setError('Backend route returned 404. This may mean the database has no inventory data yet.');
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+        setError('Cannot connect to backend server. Please ensure the backend is running on port 5000.');
+        setReportData(null);
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Authentication/Permission error. Please log in again or check your permissions.');
+        setReportData(null);
       } else {
-        setError('Failed to fetch report data');
+        setError(`Failed to fetch report data: ${err.message || 'Unknown error'}`);
         setReportData(null);
       }
     } finally {
@@ -148,7 +154,7 @@ const Reports = () => {
         <div className="stat-card">
           <div className="stat-icon">💰</div>
           <div className="stat-info">
-            <div className="stat-value">${(reportData?.totalValue || 0).toFixed(2)}</div>
+            <div className="stat-value">LKR {(reportData?.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div className="stat-label">Total Value</div>
           </div>
         </div>
@@ -163,7 +169,7 @@ const Reports = () => {
                 <div className="category-name">{category._id}</div>
                 <div className="category-stats">
                   <span>Parts: {category.count}</span>
-                  <span>Value: ${(category.totalValue || 0).toFixed(2)}</span>
+                  <span>Value: LKR {(category.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
             ))}
@@ -255,6 +261,115 @@ const Reports = () => {
     </div>
   );
 
+  const renderCategoryReport = () => (
+    <div className="report-content">
+      <div className="summary-stats">
+        {reportData?.categories?.map((category) => (
+          <div key={category._id} className="stat-card">
+            <div className="stat-icon">📦</div>
+            <div className="stat-info">
+              <div className="stat-label">{category._id}</div>
+              <div className="stat-value">{category.totalParts || 0} parts</div>
+              <div className="stat-sub">LKR {(category.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+          </div>
+        ))}
+        {(!reportData?.categories || reportData.categories.length === 0) && (
+          <div className="no-data">No category data available</div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderValueReport = () => (
+    <div className="report-content">
+      <div className="summary-stats">
+        <div className="stat-card">
+          <div className="stat-icon">📦</div>
+          <div className="stat-info">
+            <div className="stat-value">{reportData?.summary?.totalParts || 0}</div>
+            <div className="stat-label">Total Parts</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">📊</div>
+          <div className="stat-info">
+            <div className="stat-value">{reportData?.summary?.totalStockQuantity || 0}</div>
+            <div className="stat-label">Total Stock Quantity</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">💰</div>
+          <div className="stat-info">
+            <div className="stat-value">LKR {(reportData?.summary?.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="stat-label">Total Inventory Value</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">📈</div>
+          <div className="stat-info">
+            <div className="stat-value">LKR {(reportData?.summary?.averagePartValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="stat-label">Avg Part Value</div>
+          </div>
+        </div>
+      </div>
+
+      {reportData?.topValueParts && reportData.topValueParts.length > 0 && (
+        <div className="report-table" style={{ marginTop: '20px' }}>
+          <h3>Top 10 Most Valuable Parts</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Part Number</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Unit Price</th>
+                <th>Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportData.topValueParts.map((part) => (
+                <tr key={part._id}>
+                  <td>{part.partNumber}</td>
+                  <td>{part.name}</td>
+                  <td>{part.category}</td>
+                  <td>{part.currentStock}</td>
+                  <td>LKR {(part.unitPrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td>LKR {(part.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {reportData?.categoryValues && reportData.categoryValues.length > 0 && (
+        <div className="report-table" style={{ marginTop: '20px' }}>
+          <h3>Value by Category</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Part Count</th>
+                <th>Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportData.categoryValues.map((category) => (
+                <tr key={category._id}>
+                  <td>{category._id}</td>
+                  <td>{category.partCount}</td>
+                  <td>LKR {(category.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
   const renderReportContent = () => {
     if (loading) {
       return <div className="loading">Loading report data...</div>;
@@ -273,15 +388,20 @@ const Reports = () => {
           <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
             <span style={{ fontSize: '24px' }}>⚠️</span>
             <div>
-              <h3 style={{ margin: '0 0 8px 0', color: '#92400e' }}>Backend Inventory API Not Yet Implemented</h3>
+              <h3 style={{ margin: '0 0 8px 0', color: '#92400e' }}>Report Data Error</h3>
+              <p style={{ margin: '0 0 12px 0', background: '#fff', padding: '8px', borderRadius: '4px', border: '1px solid #d97706' }}>
+                <strong>Error:</strong> {error}
+              </p>
               <p style={{ margin: '0 0 12px 0' }}>
-                The inventory reports backend routes (e.g., <code>/api/inventory/reports/*</code>) need to be created in the backend server.
+                The inventory backend API is running, but this report could not be loaded.
               </p>
-              <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-                To fix this: Create inventory routes in <code>backend/routes/inventoryRoutes.js</code> and implement report controllers.
-              </p>
-              <p style={{ margin: 0, fontSize: '14px', fontStyle: 'italic' }}>
-                Showing mock data with zero values until backend is ready.
+              <p style={{ margin: 0, fontSize: '14px' }}>
+                <strong>Possible causes:</strong><br/>
+                • Database has no inventory data yet (showing zeros is normal)<br/>
+                • Network connection issue<br/>
+                • Authentication/permission issue<br/>
+                <br/>
+                <strong>Try:</strong> Refresh the page (F5) or add some inventory parts first.
               </p>
             </div>
           </div>
@@ -296,6 +416,10 @@ const Reports = () => {
         return renderLowStockReport();
       case 'transactions':
         return renderTransactionReport();
+      case 'categoryWise':
+        return renderCategoryReport();
+      case 'valueReport':
+        return renderValueReport();
       default:
         return <div className="no-data">Report type not implemented yet</div>;
     }

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
+const inventoryService = require('../services/inventoryService');
 const configController = require('../controllers/configController');
 const { verifyToken } = require('../../middleware/authMiddleware');
 const { inventoryPermissions, rolePermissions, canModifyResource } = require('../middleware/inventoryAuth');
@@ -12,6 +13,19 @@ router.get('/config/categories', configController.getCategories);
 // Test route to verify routing works
 router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Inventory routes are working!' });
+});
+
+// Test route for inventory value (no auth for debugging)
+router.get('/test-value', async (req, res) => {
+  try {
+    console.log('Testing inventory value report...');
+    const valueReport = await inventoryService.getInventoryValueReport();
+    console.log('Value report generated:', valueReport);
+    res.json({ success: true, data: valueReport });
+  } catch (error) {
+    console.error('Test value error:', error);
+    res.status(500).json({ success: false, message: error.message, stack: error.stack });
+  }
 });
 
 // Apply authentication middleware to all other routes

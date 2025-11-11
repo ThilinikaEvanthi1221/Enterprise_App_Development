@@ -16,6 +16,16 @@ const InventoryDashboard = () => {
       setLoading(true);
       setError('');
       
+      // First test if inventory routes are loaded at all
+      try {
+        const testResponse = await fetch('http://localhost:5000/api/inventory/test');
+        const testData = await testResponse.json();
+        console.log('Inventory test route response:', testData);
+      } catch (testErr) {
+        console.error('Inventory test route failed:', testErr);
+        throw new Error('Inventory routes not loaded on backend. Please restart the backend server.');
+      }
+      
       const response = await inventoryApi.getDashboardData();
       console.log('Dashboard API response:', response);
       
@@ -29,8 +39,8 @@ const InventoryDashboard = () => {
       console.error('Dashboard API error:', err);
       
       // If backend routes don't exist yet, use mock data
-      if (err.response?.status === 404 || err.message?.includes('404')) {
-        console.log('Using mock data - backend routes not yet implemented');
+      if (err.response?.status === 404 || err.message?.includes('404') || err.message?.includes('not loaded')) {
+        console.log('Using mock data - backend routes issue detected');
         setDashboardData({
           summary: {
             totalParts: 0,
@@ -41,7 +51,7 @@ const InventoryDashboard = () => {
           recentTransactions: [],
           stockByCategory: []
         });
-        setError('Backend inventory routes not yet implemented. Showing mock data.');
+        setError(err.message || 'Backend inventory routes not accessible. Showing mock data.');
       } else {
         setError(`Failed to fetch dashboard data: ${err.message || 'Unknown error'}`);
         setDashboardData(null);
@@ -76,12 +86,19 @@ const InventoryDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
             <span style={{ fontSize: '24px' }}>⚠️</span>
             <div>
-              <h3 style={{ margin: '0 0 8px 0', color: '#92400e' }}>Backend Inventory API Not Yet Implemented</h3>
+              <h3 style={{ margin: '0 0 8px 0', color: '#92400e' }}>Inventory API Connection Issue</h3>
+              <p style={{ margin: '0 0 12px 0', background: '#fff', padding: '8px', borderRadius: '4px', border: '1px solid #d97706' }}>
+                <strong>Error:</strong> {error}
+              </p>
               <p style={{ margin: '0 0 12px 0' }}>
-                The inventory management backend routes (e.g., <code>/api/inventory/*</code>) need to be created in the backend server.
+                The inventory backend routes exist in <code>backend/inventory-management/</code> but are not accessible.
               </p>
               <p style={{ margin: 0, fontSize: '14px' }}>
-                To fix this: Create inventory routes in <code>backend/routes/inventoryRoutes.js</code> and add them to <code>backend/server.js</code>
+                <strong>To fix:</strong><br/>
+                1. Stop the backend server (Ctrl+C)<br/>
+                2. Restart it with: <code>npm start</code> (in backend folder)<br/>
+                3. Check console for: <strong>"✓ Inventory routes loaded"</strong><br/>
+                4. If you see an error, check <code>backend/inventory-management/index.js</code> and model imports
               </p>
             </div>
           </div>
@@ -116,7 +133,7 @@ const InventoryDashboard = () => {
               <div className="card-icon">💰</div>
               <div className="card-content">
                 <h3>Inventory Value</h3>
-                <p className="card-number">${(dashboardData.summary?.inventoryValue || 0).toFixed(2)}</p>
+                <p className="card-number">LKR {(dashboardData.summary?.inventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <span style={{ fontSize: '12px', color: '#6b7280' }}>(Mock Data)</span>
               </div>
             </div>
@@ -167,7 +184,7 @@ const InventoryDashboard = () => {
           <div className="card-icon">💰</div>
           <div className="card-content">
             <h3>Inventory Value</h3>
-            <p className="card-number">${(summary?.inventoryValue || 0).toFixed(2)}</p>
+            <p className="card-number">LKR {(summary?.inventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
       </div>
@@ -224,7 +241,7 @@ const InventoryDashboard = () => {
                     <div className="stat">
                       <span className="stat-label">Total Value:</span>
                       <span className="stat-value">
-                        ${category.totalValue?.toFixed(2) || '0.00'}
+                        LKR {(category.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
                     <div className="stat">

@@ -441,11 +441,15 @@ class InventoryService {
 
     const topValueParts = await Part.find({ isActive: true })
       .select('partNumber name currentStock unitPrice category')
-      .addFields({
-        totalValue: { $multiply: ['$currentStock', '$unitPrice'] }
-      })
-      .sort({ totalValue: -1 })
-      .limit(10);
+      .sort({ currentStock: -1, unitPrice: -1 })
+      .limit(10)
+      .lean();
+
+    // Calculate total value for each part after query
+    const topValuePartsWithValue = topValueParts.map(part => ({
+      ...part,
+      totalValue: part.currentStock * part.unitPrice
+    })).sort((a, b) => b.totalValue - a.totalValue);
 
     const categoryValues = await Part.aggregate([
       { $match: { isActive: true } },
@@ -466,7 +470,7 @@ class InventoryService {
         totalValue: 0,
         averagePartValue: 0
       },
-      topValueParts,
+      topValueParts: topValuePartsWithValue,
       categoryValues,
       timestamp: new Date()
     };

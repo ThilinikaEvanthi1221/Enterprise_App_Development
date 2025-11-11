@@ -354,10 +354,13 @@ class InventoryController {
         data: valueReport
       });
     } catch (error) {
+      console.error('Inventory Value Report Error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: 'Error fetching inventory value report',
-        error: error.message
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
