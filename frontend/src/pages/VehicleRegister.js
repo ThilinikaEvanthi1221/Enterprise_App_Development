@@ -66,7 +66,7 @@ export default function VehicleRegister() {
         vehicle: created,
       });
       if (!created) throw new Error("No vehicle returned");
-      navigate(`/bookings?vehicleId=${created._id || created.id}`);
+      navigate(`/customer-service-requests?vehicleId=${created._id || created.id}`);
     } catch (err) {
       console.error("create vehicle error", err);
       alert("Failed to create vehicle");
@@ -76,7 +76,7 @@ export default function VehicleRegister() {
   };
 
   const handleNextExisting = (vehicle) => {
-    navigate(`/bookings?vehicleId=${vehicle._id || vehicle.id}`);
+    navigate(`/customer-service-requests?vehicleId=${vehicle._id || vehicle.id}`);
   };
 
   return (
@@ -200,7 +200,7 @@ export default function VehicleRegister() {
                   className="auth-button"
                   style={{ width: "100%", marginTop: "1rem" }}
                 >
-                  Continue to Booking
+                  Continue to Book Service
                 </button>
               </div>
             </div>
