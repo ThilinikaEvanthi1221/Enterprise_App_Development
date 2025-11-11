@@ -44,9 +44,14 @@ export default function CustomerFeedback() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const token = localStorage.getItem("token");
       await axios.post('http://localhost:5000/api/ratings', {
         ...form,
         date: form.date ? new Date(form.date) : new Date()
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       setSubmitted(true);
       setForm({ 

@@ -28,7 +28,12 @@ export default function CustomerRatings() {
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/ratings/summary');
+      const token = localStorage.getItem("token");
+      const response = await fetch('http://localhost:5000/api/ratings/summary', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       setSummary(data);
     } catch (error) {
@@ -53,8 +58,13 @@ export default function CustomerRatings() {
   const fetchRatings = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem("token");
       const params = new URLSearchParams(query);
-      const response = await fetch(`http://localhost:5000/api/ratings?${params}`);
+      const response = await fetch(`http://localhost:5000/api/ratings?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       setResult(data);
     } catch (error) {
@@ -99,7 +109,7 @@ export default function CustomerRatings() {
     }
   };
 
-  const breakdownData = summary ? [
+  const breakdownData = summary?.breakdown ? [
     { name: 'Service Quality', value: summary.breakdown.serviceQuality },
     { name: 'Timeliness', value: summary.breakdown.timeliness },
     { name: 'Staff Professionalism', value: summary.breakdown.professionalism },
@@ -340,7 +350,7 @@ export default function CustomerRatings() {
             </tr>
           </thead>
           <tbody>
-            {result.items.map((rating) => (
+            {result.items?.map((rating) => (
               <tr key={rating._id} style={styles.tableRow}>
                 <td style={styles.tableCell}>{rating.customerName}</td>
                 <td style={styles.tableCell}>{rating.vehicleNo}</td>
@@ -378,7 +388,7 @@ export default function CustomerRatings() {
           </tbody>
         </table>
 
-        {result.items.length === 0 && !loading && (
+        {(!result.items || result.items.length === 0) && !loading && (
           <div style={styles.empty}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
             <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No Reviews Found</h3>
@@ -394,7 +404,7 @@ export default function CustomerRatings() {
         )}
 
         {/* Pagination */}
-        {result.items.length > 0 && (
+        {result.items && result.items.length > 0 && (
           <div style={styles.pagination}>
             <div style={{ fontSize: '14px', color: '#6b7280' }}>
               Showing {((query.page - 1) * query.limit) + 1} to {Math.min(query.page * query.limit, result.total)} of {result.total} results
